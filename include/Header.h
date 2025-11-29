@@ -84,8 +84,6 @@ void rotationMatrix(float angle_x, float angle_y, float angle_z, float* matrix);
 #define FALSE false
 
 //colors
-
-
 extern const Color WHITE;
 extern const Color BLACK;
 extern const Color RED;

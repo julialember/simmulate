@@ -1,4 +1,4 @@
-#include "include/header.h"
+#include "include/Header.h"
 
 int main(void) {
     TRUST_INIT(900, 900, "3D Shapes with Wireframes", BLACK);

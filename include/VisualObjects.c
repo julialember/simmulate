@@ -1,4 +1,4 @@
-#include "header.h"
+#include "Header.h"
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include <string.h>
@@ -21,8 +21,14 @@ VisualBody createCube(float side_length, Color color, bool fill) {
     float len = side_length/2;
     
     float temp_verts[] = {
-        -len, -len, -len, len, -len, -len, len, len, -len, -len, len, -len,
-        -len, -len, len, len, -len, len, len, len, len, -len, len, len
+       -len,-len,-len, 
+        len,-len,-len, 
+        len, len,-len, 
+       -len, len,-len,
+       -len,-len, len, 
+        len,-len, len, 
+        len, len, len, 
+       -len, len, len
     };
     uint temp_indices[] = {
         0,1,1,2,2,3,3,0,4,5,5,6,6,7,7,4,0,4,1,5,2,6,3,7
