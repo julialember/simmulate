@@ -84,11 +84,13 @@ void rotationMatrix(float angle_x, float angle_y, float angle_z, float* matrix);
 #define FALSE false
 
 //colors
-#define WHITE COLOR(1,1,1,1)
-#define BLACK COLOR(0,0,0,1)
-#define RED COLOR(1, 0,0,1)
-#define BLUE COLOR(0,0,1,1)
-#define GREEN COLOR(0,1,0,1)
+
+
+extern const Color WHITE;
+extern const Color BLACK;
+extern const Color RED;
+extern const Color BLUE;
+extern const Color GREEN;
 
 //automatisation
 #define TRUST_INIT(w, h, tit, c) \

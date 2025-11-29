@@ -8,6 +8,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+const Color WHITE = {1,1,1,1};
+const Color BLACK = {0,0,0,1};
+const Color RED = {1,0,0,1};
+const Color BLUE = {0,0,1,1};
+const Color GREEN = {0,1,0,1};
+
 VisualBody createCube(float side_length, Color color, bool fill) {
     static float vertices[24];
     static uint indices[24];
@@ -71,7 +77,7 @@ VisualBody createCoorPols() {
         grid_edges[edge_index++] = GRID_SIZE * 2 + x * 2 + 1;
     }
     
-    return createVisualBody(grid_vertices, vertex_index, grid_edges, edge_index, WHITE, false);
+    return createVisualBody(grid_vertices, vertex_index, grid_edges, edge_index, (Color)WHITE, false); 
 }
 
 VisualBody createAxis() {
