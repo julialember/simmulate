@@ -1,5 +1,5 @@
 prog:
-	@clang main.c -o prog -I/opt/homebrew/include -L/opt/homebrew/lib -lglfw -lGLEW -framework OPENGL
+	@clang main.c include/visual_objects.c -o prog -I/opt/homebrew/include -L/opt/homebrew/lib -lglfw -lGLEW -framework OPENGL
 	@leaks --atExit -- ./prog
 	@rm prog
 	

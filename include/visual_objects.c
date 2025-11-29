@@ -1,3 +1,4 @@
+#include "header.h"
 #include "GL/glew.h"
 #include "GLFW/glfw3.h"
 #include <string.h>
@@ -7,141 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifndef VIS_C 
-#define VIS_C
-
-typedef unsigned int uint;
-
-typedef struct {
-    float r, g, b, a;
-} Color;
-
-typedef struct {
-    float x, y, z;
-} vec3;
-
-typedef struct {
-    float *vertices;
-    uint vertices_count;
-    uint *edges;
-    uint edges_count;
-    bool fillcolor;
-    Color color;
-    uint VAO, VBO, EBO;
-} Shape;
-
-typedef struct {
-    GLFWwindow *handler; 
-    Shape *shapes;
-    uint shape_count;
-    uint shader_program;
-    
-    //rotate pols
-    vec3 rotation_angles;      
-    bool is_rotating;          
-    double last_mouse_x;       
-    double last_mouse_y;       
-} Window;
-
-typedef struct {
-    float x, y;
-} pos_2D;
-
-
-// helpers
-Color createColor(float, float, float, float);
-#define COLOR(r,g,b,a) (createColor(r,g,b,a))
-Shape createShape(float*, uint, uint*, uint, Color, bool);
-void DrawShape(Shape*, uint);
-void setupShapes(Window*);
-int addShapes(Window*, uint, ...);
-Shape createCoorPols();
-Shape createAxis();
-Shape createSphere(float, Color, bool);
-
-
-// shaders
-typedef enum {
-    VERTEX, FRAGMENT
-} ShaderType;
-const uint createShader(char*, ShaderType, bool);
-uint createProgramm(uint, ...);
-void compileShader(Window*, char*, char*);
-
-// init
-int SystemInit(void);
-int GraphicInit(uint, uint, Color);
-Window* VisualInit(uint, uint, const char*, Color);
-
-//main func
-void RunGraphic(Window*, bool);
-void EndProcess(Window*);
-
-//rotate func
-void setupRotation(Window* win); 
-void updateRotation(Window* win);
-void rotationMatrix(float angle_x, float angle_y, float angle_z, float* matrix); 
-
-//boolean (for cups_lock)
-#define TRUE true 
-#define FALSE false
-
-//colors
-#define WHITE COLOR(1,1,1,1)
-#define BLACK COLOR(0,0,0,1)
-#define RED COLOR(1, 0,0,1)
-#define BLUE COLOR(0,0,1,1)
-#define GREEN COLOR(0,1,0,1)
-
-//automatisation
-#define TRUST_INIT(w, h, tit, c) \
-    Window* ___VIS__WINDOW___ = VisualInit(w, h, tit, c); \
-    if (!___VIS__WINDOW___) return 1
-
-#define TRUST_RUN() \
-    do { \
-        setupRotation(___VIS__WINDOW___); \
-        RunGraphic(___VIS__WINDOW___, false); \
-        EndProcess(___VIS__WINDOW___); \
-    } while(0)
-
-
-#define CREATE_GRID_AXIS(show_grid, show_axis)\
-    do {\
-        if ((show_axis) && !(show_grid)) \
-            addShapes(___VIS__WINDOW___, 1, createAxis()); \
-        else if (!(show_axis) && (show_grid)) \
-            addShapes(___VIS__WINDOW___, 1, createCoorPols());\
-        else if ((show_axis) && (show_grid)) \
-            addShapes(___VIS__WINDOW___, 2, createAxis(), createCoorPols());\
-    } while(0)
-        
-
-#define ADD_SHAPES(...) \
-    do {\
-        Shape arr[] = {__VA_ARGS__}; \
-        uint count = sizeof(arr) / sizeof(arr[0]); \
-        if (addShapes(___VIS__WINDOW___, count, __VA_ARGS__)) return 1; \
-        else printf("succ");\
-    } while (0) 
-
-#define SHAPE_t(vert, edge, color) \
-    do {\
-        size_t vert_count = sizeof(vert) / sizeof(vert[0]);\
-        size_t edges_count = sizeof(edge) / sizeof(edge[0]);\
-        Shape s = createShape(vert, vert_count, edge, edges_count, color, false);\
-        if (addShapes(___VIS__WINDOW___, 1, s)) return 1; \
-    }while(0)
-
-
-//right shapes 
-#define CUBE(side_length, color, fill) createCube(side_length, color, fill)
-
-
-
-#endif
-
-Shape createCube(float side_length, Color color, bool fill) {
+VisualBody createCube(float side_length, Color color, bool fill) {
     static float vertices[24];
     static uint indices[24];
     
@@ -158,10 +25,10 @@ Shape createCube(float side_length, Color color, bool fill) {
     memcpy(vertices, temp_verts, sizeof(temp_verts));
     memcpy(indices, temp_indices, sizeof(temp_indices));
     
-    return createShape(vertices, 24, indices, 24, color, fill);
+    return createVisualBody(vertices, 24, indices, 24, color, fill);
 }
 
-Shape createCoorPols() {
+VisualBody createCoorPols() {
 #ifndef GRID_SIZE
 #define GRID_SIZE 10
 #endif
@@ -204,10 +71,10 @@ Shape createCoorPols() {
         grid_edges[edge_index++] = GRID_SIZE * 2 + x * 2 + 1;
     }
     
-    return createShape(grid_vertices, vertex_index, grid_edges, edge_index, WHITE, false);
+    return createVisualBody(grid_vertices, vertex_index, grid_edges, edge_index, WHITE, false);
 }
 
-Shape createAxis() {
+VisualBody createAxis() {
     static float axes_vertices[] = {
         -1.0f, 0, 0.0f,
          1.0f, 0, 0.0f,
@@ -225,7 +92,7 @@ Shape createAxis() {
         4, 5  
     };
 
-    return createShape(axes_vertices, 18, axes_edges, 6, RED, false);
+    return createVisualBody(axes_vertices, 18, axes_edges, 6, RED, false);
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -331,23 +198,23 @@ inline uint createProgramm(uint count, ...) {
     return programm;
 }
 
-int addShapes(Window* win, uint shape_count, ...) {
+int addVisualBodys(Window* win, uint shape_count, ...) {
     if (!win) return 1;
     
     uint old_count = win->shape_count;
     uint new_count = old_count + shape_count;
     
-    void *temp = realloc(win->shapes, sizeof(Shape) * new_count);
+    void *temp = realloc(win->shapes, sizeof(VisualBody) * new_count);
     if (!temp) {
         fprintf(stderr, "error with mem_allocate\n");   
         return 1;
     }
-    win->shapes = (Shape*)temp;
+    win->shapes = (VisualBody*)temp;
     
     va_list args;
     va_start(args, shape_count);
     for(uint i = 0; i < shape_count; i++) {
-        win->shapes[old_count + i] = va_arg(args, Shape);
+        win->shapes[old_count + i] = va_arg(args, VisualBody);
     }
     va_end(args);
     
@@ -360,7 +227,7 @@ inline void EndProcess(Window* pr) {
     if (!pr) return;
 
     for (uint i = 0; i < pr->shape_count; i++) {
-        Shape *shape = &pr->shapes[i];
+        VisualBody *shape = &pr->shapes[i];
         
         glDeleteVertexArrays(1, &shape->VAO);
         glDeleteBuffers(1, &shape->VBO);
@@ -383,8 +250,8 @@ inline void EndProcess(Window* pr) {
     glfwTerminate();
 }
 
-Shape createShape(float *vertices, uint vc, uint *edges, uint ec,  Color color, bool fillcolor) {
-    return (Shape) {
+VisualBody createVisualBody(float *vertices, uint vc, uint *edges, uint ec,  Color color, bool fillcolor) {
+    return (VisualBody) {
     .edges = edges,
     .vertices = vertices,
     .fillcolor = fillcolor,
@@ -452,7 +319,7 @@ Window* VisualInit(uint w, uint h, const char* title, Color c) {
     return win;
 }
 
-void DrawShape(Shape *shape, uint shader_program) {
+void DrawVisualBody(VisualBody *shape, uint shader_program) {
     
     int color_loc = glGetUniformLocation(shader_program, "shapeColor");
     glUniform4f(color_loc, shape->color.r, shape->color.g, shape->color.b, shape->color.a);
@@ -485,7 +352,7 @@ inline void RunGraphic(Window* win, bool shouldclose) {
         "}\0";
     
     compileShader(win, vertex_shader_source, fragment_shader_source);
-    setupShapes(win);
+    setupVisualBodys(win);
     
     while (!shouldclose && !glfwWindowShouldClose(win->handler)) {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -493,7 +360,7 @@ inline void RunGraphic(Window* win, bool shouldclose) {
         updateRotation(win);
         
         for (uint i = 0; i < win->shape_count; i++) {
-            DrawShape(&win->shapes[i], win->shader_program);
+            DrawVisualBody(&win->shapes[i], win->shader_program);
         }
         
         glfwSwapBuffers(win->handler);
@@ -505,11 +372,11 @@ inline void RunGraphic(Window* win, bool shouldclose) {
     }
 }
 
-void setupShapes(Window *win) {
+void setupVisualBodys(Window *win) {
     if (!win->shapes || win->shape_count <= 0) return;
     
     for (uint i = 0; i < win->shape_count; i++) {
-        Shape *shape = &win->shapes[i];
+        VisualBody *shape = &win->shapes[i];
         
         glGenVertexArrays(1, &shape->VAO);
         glGenBuffers(1, &shape->VBO);
